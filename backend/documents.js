@@ -4,6 +4,10 @@ import { Client } from '@elastic/elasticsearch'
 var router = express.Router();
 var es = new Client({
     node: 'http://localhost:9200',
+    auth:{
+        username:'elastic',
+        password: "123456"
+    }
 })
 
 router.post("/insert", (req, res) => {

@@ -5,6 +5,9 @@ import { Client } from '@elastic/elasticsearch'
 import fileupload from 'express-fileupload'
 
 import documentRoute from './documents.js'
+import jwt from 'jsonwebtoken'
+import token from './global.js'
+
 
 var app = express()
 app.use(bodyparser.json())
@@ -12,10 +15,16 @@ app.use(cors())
 app.use(fileupload())
 var es = new Client({
     node: 'http://localhost:9200',
+    auth: {
+        username: 'elastic',
+        password: "123456"
+    }
 })
 
 // es.indices.delete({index:'documents'})
 // es.indices.create({index:'documents'})
+// es.indices.create({index:'users'})
+// es.indices.create({index:'audit_trail'})
 
 app.post("/login", (req, res) => {
     es.search({
@@ -26,7 +35,12 @@ app.post("/login", (req, res) => {
             }
         }
     }).then((response) => {
-        res.send(response.body.hits.hits)
+        if (response.body.hits.hits.length > 0) {
+            var encode = jwt.sign(response.body.hits.hits[0]._source, token)
+            res.send(encode)
+        }
+        else
+            res.status(500).send({ error: 'User not found' })
     })
 })
 
